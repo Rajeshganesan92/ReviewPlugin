@@ -21,9 +21,22 @@ function rs_settings_page(){
         <table class="form-table">
           <tr><th>Dot/Accent Color</th><td><input type="color" name="rs_theme_color" value="<?php echo esc_attr($theme); ?>"></td></tr>
           <tr><th>Star Color</th><td><input type="color" name="rs_star_color" value="<?php echo esc_attr($star); ?>"></td></tr>
+          <tr><th>Shortcode</th><td><input type="text" readonly value="[review_slider]" id="rs_shortcode" style="width:100%;max-width:300px;"> <button class="button" id="rs_copy_shortcode">Copy</button></td></tr>
         </table>
         <p><button class="button button-primary" name="rs_save_settings">Save</button></p>
       </form>
     </div>
+    <script>
+    jQuery(function($){
+        $('#rs_copy_shortcode').on('click', function(e){
+            e.preventDefault();
+            var copyText = document.getElementById("rs_shortcode");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            $(this).text('Copied!');
+        });
+    });
+    </script>
     <?php
 }
