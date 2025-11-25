@@ -19,4 +19,8 @@ class Review_Widget extends Widget_Base {
     protected function render(){
         echo do_shortcode('[review_slider]');
     }
+
+    public function get_style_depends() {
+        return [ 'rs-frontend' ];
+    }
 }
