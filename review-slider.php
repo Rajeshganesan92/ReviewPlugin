@@ -39,6 +39,7 @@ class Review_Slider {
 
         // Elementor widget
         add_action('elementor/widgets/register', array($this, 'register_elementor_widget'));
+        add_action('elementor/editor/before_enqueue_scripts', array($this, 'enqueue_scripts'));
 
         // Activation hook
         register_activation_hook(__FILE__, array($this, 'activate'));
