@@ -1,4 +1,20 @@
 (() => {
+  // Utility function for debouncing
+  function debounce(func, wait, immediate) {
+    let timeout;
+    return function() {
+      const context = this, args = arguments;
+      const later = function() {
+        timeout = null;
+        if (!immediate) func.apply(context, args);
+      };
+      const callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) func.apply(context, args);
+    };
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const sliders = document.querySelectorAll('.review-slider-wrapper');
     if (!sliders.length) return;
@@ -9,7 +25,8 @@
 
       const track = slider.querySelector('.slider-track');
       const dots = slider.querySelector('.dots');
-      const autoplay = 3000;
+      // Make autoplay speed configurable via data attribute, with a default fallback
+      const autoplay = parseInt(sliderWrapper.dataset.autoplaySpeed, 10) || 3000;
       let index = 0;
       let cardW;
       let auto;
@@ -24,22 +41,27 @@
       slides = Array.from(track.children);
 
       // Create dots
-      for (let i = 0; i < origLen; i++) {
-        const b = document.createElement('button');
-        if (i === 0) b.classList.add('active');
-        dots.appendChild(b);
+      if (dots) {
+          for (let i = 0; i < origLen; i++) {
+            const b = document.createElement('button');
+            if (i === 0) b.classList.add('active');
+            dots.appendChild(b);
+          }
       }
-      const dotButtons = Array.from(dots.children);
+      const dotButtons = dots ? Array.from(dots.children) : [];
 
       const updateWidth = () => {
+        if (slides.length === 0) return;
         const slideStyle = window.getComputedStyle(slides[0]);
         const slideMargin = parseFloat(slideStyle.marginLeft) + parseFloat(slideStyle.marginRight);
         cardW = slides[0].getBoundingClientRect().width + slideMargin;
       };
       updateWidth();
-      window.addEventListener('resize', updateWidth);
+      // Debounce the resize event listener
+      window.addEventListener('resize', debounce(updateWidth, 250));
 
       const updateDots = (i) => {
+        if (!dots) return;
         dotButtons.forEach(d => d.classList.remove('active'));
         dotButtons[i % origLen].classList.add('active');
       };
@@ -53,18 +75,21 @@
         updateDots(index);
 
         if (index >= origLen) {
+          // After the smooth scroll animation finishes, reset to the beginning.
+          // The timeout should be slightly longer than the scroll animation duration.
           setTimeout(() => {
             index = 0;
             track.scrollTo({
               left: 0,
-              behavior: 'auto'
+              behavior: 'auto' // Use 'auto' for an instant jump
             });
             updateDots(index);
-          }, 500); // 500ms for smooth scroll to finish
+          }, 700); // Increased timeout for safety
         }
       };
 
       const startAutoplay = () => {
+        if (autoplay === 0) return; // Do not start if autoplay is disabled
         auto = setInterval(moveNext, autoplay);
       };
 
@@ -103,24 +128,33 @@
 
     // Lazy load images
     const lazyImages = document.querySelectorAll('.rs-thumb[data-src]');
-    const lazyImageObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const lazyImage = entry.target;
-          lazyImage.src = lazyImage.dataset.src;
-          lazyImage.removeAttribute('data-src');
-          observer.unobserve(lazyImage);
-        }
+    if ('IntersectionObserver' in window) {
+      const lazyImageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const lazyImage = entry.target;
+            lazyImage.src = lazyImage.dataset.src;
+            lazyImage.removeAttribute('data-src');
+            observer.unobserve(lazyImage);
+          }
+        });
       });
-    });
-    lazyImages.forEach(lazyImage => {
-      lazyImageObserver.observe(lazyImage);
-    });
+      lazyImages.forEach(lazyImage => {
+        lazyImageObserver.observe(lazyImage);
+      });
+    } else {
+      // Fallback for browsers that don't support IntersectionObserver
+      lazyImages.forEach(lazyImage => {
+        lazyImage.src = lazyImage.dataset.src;
+        lazyImage.removeAttribute('data-src');
+      });
+    }
+
 
     // Apply theme dot color
     if (typeof rsFront !== 'undefined' && rsFront.theme) {
       const style = document.createElement('style');
-      style.innerHTML = `.dots button.active { background: ${rsFront.theme} !important; }`;
+      style.innerHTML = `.review-slider-wrapper .dots button.active { background: ${rsFront.theme} !important; }`;
       document.head.appendChild(style);
     }
   });

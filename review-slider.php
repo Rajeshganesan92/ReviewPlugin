@@ -2,8 +2,9 @@
 /**
  * Plugin Name: Review Slider
  * Description: A simple and clean review slider.
- * Version: 3.0
+ * Version: 3.1
  * Author: Your Name
+ * Text Domain: review-slider
  */
 
 if (!defined('ABSPATH')) {
@@ -15,7 +16,12 @@ define('RS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 class Review_Slider {
 
+    private $text_domain = 'review-slider';
+
     public function __construct() {
+        // Load text domain
+        add_action('plugins_loaded', array($this, 'load_text_domain'));
+
         // Register post type
         add_action('init', array($this, 'register_post_type'));
 
@@ -45,10 +51,14 @@ class Review_Slider {
         register_activation_hook(__FILE__, array($this, 'activate'));
     }
 
+    public function load_text_domain() {
+        load_plugin_textdomain($this->text_domain, false, dirname(plugin_basename(__FILE__)) . '/languages');
+    }
+
     public function register_post_type() {
         $labels = [
-            'name' => 'Reviews',
-            'singular_name' => 'Review',
+            'name' => __('Reviews', $this->text_domain),
+            'singular_name' => __('Review', $this->text_domain),
         ];
         register_post_type('review_slider', [
             'labels' => $labels,
@@ -64,7 +74,7 @@ class Review_Slider {
     }
 
     public function add_meta_boxes() {
-        add_meta_box('rs_details', 'Review Details', array($this, 'meta_box_cb'), 'review_slider', 'normal', 'high');
+        add_meta_box('rs_details', __('Review Details', $this->text_domain), array($this, 'meta_box_cb'), 'review_slider', 'normal', 'high');
     }
 
     public function meta_box_cb($post) {
@@ -75,19 +85,19 @@ class Review_Slider {
         $stars = $meta['rs_stars'][0] ?? 5;
         $location = $meta['rs_location'][0] ?? '';
         ?>
-        <p><label>Customer Info</label><br>
+        <p><label><?php _e('Customer Info', $this->text_domain); ?></label><br>
         <input type="text" name="rs_customer_info" value="<?php echo esc_attr($customer_info); ?>" style="width:100%"></p>
 
-        <p><label>Stars (1-5)</label><br>
+        <p><label><?php _e('Stars (1-5)', $this->text_domain); ?></label><br>
         <input type="number" name="rs_stars" min="1" max="5" value="<?php echo esc_attr($stars); ?>"></p>
 
-        <p><label>Location</label><br>
+        <p><label><?php _e('Location', $this->text_domain); ?></label><br>
         <input type="text" name="rs_location" value="<?php echo esc_attr($location); ?>" style="width:100%"></p>
 
         <p>
-          <label>Image</label><br>
+          <label><?php _e('Image', $this->text_domain); ?></label><br>
           <input type="text" id="rs_image" name="rs_image" value="<?php echo esc_attr($image); ?>" style="width:70%">
-          <button class="button" id="rs_upload">Upload</button>
+          <button class="button" id="rs_upload"><?php _e('Upload', $this->text_domain); ?></button>
         </p>
         <div id="rs_preview">
           <?php if ($image): ?><img src="<?php echo esc_url($image); ?>" style="max-width:120px;border-radius:50%" /><?php endif; ?>
@@ -97,7 +107,7 @@ class Review_Slider {
         jQuery(function($){
             $('#rs_upload').on('click', function(e){
                 e.preventDefault();
-                var frame = wp.media({title:'Select Image', button:{text:'Use'}, multiple:false});
+                var frame = wp.media({title: <?php echo json_encode(__('Select Image', $this->text_domain)); ?>, button:{text: <?php echo json_encode(__('Use', $this->text_domain)); ?>}, multiple:false});
                 frame.open();
                 frame.on('select', function(){
                     var att = frame.state().get('selection').first().toJSON();
@@ -117,7 +127,7 @@ class Review_Slider {
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             return;
         }
-        if (get_post_type($post_id) !== 'review_slider') {
+        if (get_post_type($post_id) !== 'review_slider' || !current_user_can('edit_post', $post_id)) {
             return;
         }
 
@@ -128,7 +138,7 @@ class Review_Slider {
     }
 
     public function admin_settings_menu() {
-        add_submenu_page('edit.php?post_type=review_slider', 'Slider Settings', 'Slider Settings', 'manage_options', 'rs_settings', array($this, 'settings_page'));
+        add_submenu_page('edit.php?post_type=review_slider', __('Slider Settings', $this->text_domain), __('Slider Settings', $this->text_domain), 'manage_options', 'rs_settings', array($this, 'settings_page'));
     }
 
     public function settings_page() {
@@ -136,28 +146,28 @@ class Review_Slider {
             check_admin_referer('rs_settings_nonce');
             update_option('rs_theme_color', sanitize_hex_color($_POST['rs_theme_color'] ?? '#000'));
             update_option('rs_star_color', sanitize_hex_color($_POST['rs_star_color'] ?? '#FFD700'));
-            echo '<div class="updated"><p>Saved.</p></div>';
+            echo '<div class="updated"><p>' . __('Saved.', $this->text_domain) . '</p></div>';
         }
 
         $theme = get_option('rs_theme_color', '#000');
         $star = get_option('rs_star_color', '#FFD700');
         ?>
         <div class="wrap">
-          <h1>Review Slider Settings</h1>
+          <h1><?php _e('Review Slider Settings', $this->text_domain); ?></h1>
           <form method="post">
             <?php wp_nonce_field('rs_settings_nonce'); ?>
             <table class="form-table">
-              <tr><th>Dot/Accent Color</th><td><input type="color" name="rs_theme_color" value="<?php echo esc_attr($theme); ?>"></td></tr>
-              <tr><th>Star Color</th><td><input type="color" name="rs_star_color" value="<?php echo esc_attr($star); ?>"></td></tr>
+              <tr><th><?php _e('Dot/Accent Color', $this->text_domain); ?></th><td><input type="color" name="rs_theme_color" value="<?php echo esc_attr($theme); ?>"></td></tr>
+              <tr><th><?php _e('Star Color', $this->text_domain); ?></th><td><input type="color" name="rs_star_color" value="<?php echo esc_attr($star); ?>"></td></tr>
             </table>
-            <p><button class="button button-primary" name="rs_save_settings">Save</button></p>
+            <p><button class="button button-primary" name="rs_save_settings"><?php _e('Save', $this->text_domain); ?></button></p>
           </form>
         </div>
         <?php
     }
 
     public function reorder_admin_menu() {
-        add_submenu_page('edit.php?post_type=review_slider', 'Reorder Reviews', 'Reorder Reviews', 'manage_options', 'rs_reorder', array($this, 'reorder_page'));
+        add_submenu_page('edit.php?post_type=review_slider', __('Reorder Reviews', $this->text_domain), __('Reorder Reviews', $this->text_domain), 'manage_options', 'rs_reorder', array($this, 'reorder_page'));
     }
 
     public function reorder_page() {
@@ -167,7 +177,7 @@ class Review_Slider {
         wp_enqueue_style('rs-admin-css', RS_PLUGIN_URL . 'assets/css/slider.css');
 
         $reviews = get_posts(['post_type' => 'review_slider', 'posts_per_page' => -1, 'orderby' => 'menu_order', 'order' => 'ASC']);
-        echo '<div class="wrap"><h1>Drag to Reorder Reviews</h1><ul id="rs_reorder_list" style="list-style:none;padding:0;">';
+        echo '<div class="wrap"><h1>' . __('Drag to Reorder Reviews', $this->text_domain) . '</h1><ul id="rs_reorder_list" style="list-style:none;padding:0;">';
         foreach ($reviews as $r) {
             $meta = get_post_meta($r->ID);
             $img = esc_url($meta['rs_image'][0] ?? '');
@@ -178,7 +188,7 @@ class Review_Slider {
             }
             echo '</li>';
         }
-        echo '</ul><p><button class="button" id="rs_save_order">Save Order</button></p></div>';
+        echo '</ul><p><button class="button" id="rs_save_order">' . __('Save Order', $this->text_domain) . '</button></p></div>';
     }
 
     public function save_order() {
@@ -200,12 +210,31 @@ class Review_Slider {
     }
 
     public function slider_shortcode($atts) {
+        $atts = shortcode_atts([
+            'autoplay_speed' => 3000,
+            'slides_to_show' => 3,
+            'slides_to_show_tablet' => 2,
+            'slides_to_show_mobile' => 1,
+        ], $atts, 'review_slider');
+
         wp_enqueue_style('rs-frontend');
         wp_enqueue_script('rs-frontend-js');
 
+        $slider_id = 'rs-' . uniqid();
+        $style = "<style>
+            #{$slider_id} { --slides-to-show: " . esc_attr($atts['slides_to_show']) . "; }
+            @media (max-width: 992px) {
+                #{$slider_id} { --slides-to-show: " . esc_attr($atts['slides_to_show_tablet']) . "; }
+            }
+            @media (max-width: 600px) {
+                #{$slider_id} { --slides-to-show: " . esc_attr($atts['slides_to_show_mobile']) . "; }
+            }
+        </style>";
+
         $q = new WP_Query(['post_type' => 'review_slider', 'posts_per_page' => -1, 'orderby' => 'menu_order', 'order' => 'ASC']);
         ob_start();
-        echo '<div class="review-slider-wrapper"><div class="slider"><div class="slider-track">';
+        echo $style;
+        echo '<div id="' . $slider_id . '" class="review-slider-wrapper" data-autoplay-speed="' . esc_attr($atts['autoplay_speed']) . '"><div class="slider"><div class="slider-track">';
         while ($q->have_posts()): $q->the_post();
             $meta = get_post_meta(get_the_ID());
             $img = esc_url($meta['rs_image'][0] ?? '');
