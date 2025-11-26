@@ -243,11 +243,10 @@ class Review_Slider {
             if ($img) {
                 echo '<img data-src="' . $img . '" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="rs-thumb" style="width:60px;border-radius:50%;margin-bottom:10px;"/>';
             }
-            echo '<h3>' . get_the_title() . '</h3>';
-            echo '<p>' . esc_html($meta['rs_customer_info'][0] ?? '') . '</p>';
+            echo '<h3 class="rs-cus-name">' . get_the_title() . '</h3>';
+            echo '<div class="rs-cus-info-div">' . esc_html($meta['rs_customer_info'][0] ?? '') . ' | ' . esc_html($meta['rs_location'][0] ?? '') . '</div>';
             echo '<p class="rs-stars" data-stars="' . $stars . '"></p>';
             echo '<div class="rs-text">' . get_the_content() . '</div>';
-            echo '<small>' . esc_html($meta['rs_location'][0] ?? '') . '</small>';
             echo '</div>';
         endwhile;
         wp_reset_postdata();
