@@ -58,3 +58,7 @@
     flex-basis: calc(100% - 20px);
   }
 }
+
+.rs-text {
+    padding-bottom: 10px;
+}
