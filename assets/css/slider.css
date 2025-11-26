@@ -15,7 +15,7 @@
   display: none;
 }
 .review-slider-wrapper .slide {
-  flex: 0 0 calc((100% / 3) - 20px);
+  flex: 0 0 calc((100% / var(--slides-to-show, 3)) - 20px);
   margin: 10px;
   background: #f4f4f4;
   padding: 30px;
