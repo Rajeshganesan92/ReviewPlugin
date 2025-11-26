@@ -120,8 +120,12 @@
       const n = parseInt(el.getAttribute('data-stars') || 5, 10);
       const starColor = (typeof rsFront !== 'undefined' && rsFront.star) ? rsFront.star : '#FFD700';
       let html = '';
-      for (let s = 0; s < n; s++) {
-        html += `<span style="color:${starColor}">★</span>`;
+      for (let s = 0; s < 5; s++) {
+        if (s < n) {
+          html += `<span style="color:${starColor}">★</span>`;
+        } else {
+          html += `<span style="color:#ccc">★</span>`;
+        }
       }
       el.innerHTML = html;
     });
