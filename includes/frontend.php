@@ -12,22 +12,11 @@ add_shortcode('review_slider', function($atts){
     $q = new WP_Query(['post_type'=>'review_slider','posts_per_page'=>-1,'orderby'=>'menu_order','order'=>'ASC']);
     ob_start();
     echo '<div class="review-slider-wrapper"><div class="slider"><div class="slider-track">';
-    $first = true;
     while($q->have_posts()): $q->the_post(); $meta=get_post_meta(get_the_ID());
       $img = esc_url($meta['rs_image'][0] ?? '');
       $stars = intval($meta['rs_stars'][0] ?? 5);
       echo '<div class="slide">';
-      if ($img) {
-        $img_style = 'width:60px;height:60px;border-radius:50%;margin-bottom:10px;';
-        $img_attrs = 'class="rs-thumb" loading="lazy" decoding="async"';
-        if($first) {
-            $img_attrs .= ' fetchpriority="high"';
-            $first = false;
-        }else{
-            $img_attrs .= ' fetchpriority="low"';
-        }
-        echo '<img '.$img_attrs.' style="'.$img_style.'" src="'.$img.'" />';
-      }
+      if ($img) echo '<img data-src="'.$img.'" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="rs-thumb" />';
       echo '<h3>'.get_the_title().'</h3>';
       echo '<p>'.esc_html($meta['rs_customer_info'][0] ?? '').'</p>';
       echo '<p class="rs-stars" data-stars="'.$stars.'"></p>';

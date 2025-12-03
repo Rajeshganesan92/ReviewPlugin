@@ -130,6 +130,31 @@
       el.innerHTML = html;
     });
 
+    // Lazy load images
+    const lazyImages = document.querySelectorAll('.rs-thumb[data-src]');
+    if ('IntersectionObserver' in window) {
+      const lazyImageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const lazyImage = entry.target;
+            lazyImage.src = lazyImage.dataset.src;
+            lazyImage.removeAttribute('data-src');
+            observer.unobserve(lazyImage);
+          }
+        });
+      });
+      lazyImages.forEach(lazyImage => {
+        lazyImageObserver.observe(lazyImage);
+      });
+    } else {
+      // Fallback for browsers that don't support IntersectionObserver
+      lazyImages.forEach(lazyImage => {
+        lazyImage.src = lazyImage.dataset.src;
+        lazyImage.removeAttribute('data-src');
+      });
+    }
+
+
     // Apply theme dot color
     if (typeof rsFront !== 'undefined' && rsFront.theme) {
       const style = document.createElement('style');
